@@ -51,7 +51,8 @@ jobs:
          clean: ${{github.event.inputs.clean}}
          prefix: ${{ github.workspace }}/openwrt
     
-    - name: Copy custom files
+    # =========【只保留一次 Copy custom files 执行 part1】=========
+    - name: Copy custom files & Run diy-part1
       run: |
         git config --global core.askPass ""
         git config --global credential.helper ""
@@ -63,25 +64,16 @@ jobs:
         cd openwrt
         ${GITHUB_WORKSPACE}/${DIY_P1_SH}
 
-  
-           
-    - name: Copy custom files
-      run: |
-        cp -f .config openwrt/.config
-        cp -f mt7981b-honor-fur-602.dts openwrt/
-        chmod +x $DIY_P1_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
-
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
       
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
 
-    - name: Inject dts & device
+    # 注入DTS、机型补丁（diy-part2）
+    - name: Inject dts & device config (diy-part2)
       run: |
-         chmod +x $DIY_P2_SH
+         chmod +x $GITHUB_WORKSPACE/$DIY_P2_SH
          cd openwrt
          $GITHUB_WORKSPACE/$DIY_P2_SH
         
@@ -140,7 +132,7 @@ jobs:
          body: |
              Gateway：192.168.1.1
              Password：（空，首次登录自行设置）
-             Device：Honor FUR‑602，网页显示 RuiJie SR503
+             Device：Honor FUR‑602
              Version：immortalwrt-mt798x-24.10
          files: ${{ env.FIRMWARE }}/*
 
