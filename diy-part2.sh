@@ -1,36 +1,51 @@
 #!/bin/bash
-set -e
+set -e -o pipefail
 
-# 设备树源文件（仓库根目录）
 DTS_SRC="../mt7981b-honor-fur-602.dts"
 DTS_DST="target/linux/mediatek/dts/mt7981b-honor-fur-602.dts"
 FILOGIC_MK="target/linux/mediatek/image/filogic.mk"
+NETWORK_FILE="target/linux/mediatek/filogic/base-files/etc/board.d/02_network"
 
-# 复制设备树
-cp -f "${DTS_SRC}" "${DTS_DST}"
-echo "[diy] copied dts -> ${DTS_DST}"
-
-# filogic.mk注册设备dtb
-if ! grep -q "mt7981b-honor-fur-602.dtb" "${FILOGIC_MK}";then
-echo 'define Device/honor_fur-602
-  DEVICE_VENDOR := Honor
-  DEVICE_MODEL := FUR-602
-  DEVICE_ALT0_VENDOR := RuiJie
-  DEVICE_ALT0_MODEL := SR503
-  DEVICE_DTS := mt7981b-honor-fur-602
-  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-eeprom
-endef
-TARGET_DEVICES += honor_fur-602' >> "${FILOGIC_MK}"
-echo "[diy] append filogic.mk device entry"
+# 复制设备树文件，增加文件存在判断容错
+if [ -f "$DTS_SRC" ]; then
+	cp -f "$DTS_SRC" "$DTS_DST"
+	echo "[diy‑part2] installed dts: $DTS_DST"
+else
+	echo "[diy‑part2] WARNING: mt7981b-honor-fur-602.dts 文件缺失！"
 fi
 
-# uci‑defaults：修改web页面显示型号，不修改主机名
-mkdir -p files/etc/uci-defaults
-cat > files/etc/uci-defaults/99_fake_model <<'EOF'
-#!/bin/sh
-# 仅修改网页概览页面型号展示，hostname保持honor‑fur‑602不变
-[ -f /etc/board.json ] && sed -i 's/"model":{"name":"Honor FUR‑602"/"model":{"name":"RuiJie SR503"/g' /etc/board.json
-exit 0
+# 向 filogic.mk 添加设备条目，避免重复写入
+if ! grep -q "honor_fur602" "$FILOGIC_MK"; then
+cat >> "$FILOGIC_MK" <<EOF
+define Device/honor_fur602
+  DEVICE_VENDOR := Honor
+  DEVICE_MODEL := FUR‑602
+  DEVICE_DTS := mt7981b-honor-fur-602
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt_wifi mtwifi-cfg
+  SUPPORTED_DEVICES := honor,fur‑602
+endef
+TARGET_DEVICES += honor_fur602
 EOF
-chmod +x files/etc/uci-defaults/99_fake_model
-echo "[diy] uci-defaults fake model done"
+	echo "[diy‑part2] added device entry to filogic.mk"
+fi
+
+# 02_network网口映射，不存在才追加
+if ! grep -q "honor,fur‑602" "$NETWORK_FILE"; then
+sed -i '/mediatek,filogic)/a\
+\t\thonor,fur‑602)\
+\t\t\tlan_mac=\$(macaddr_2_sub_e 1)\
+\t\t\twan_mac=\$(macaddr_2_sub_e 2)\
+\t\t\tucidef_set_interfaces_lan_wan "eth0" "eth1"\
+\t\t\t;;' "$NETWORK_FILE"
+	echo "[diy‑part2] added network board.d config"
+fi
+
+# .config 屏蔽datconf 、conninfra，解决24.10编译报错
+sed -i '/CONFIG_PACKAGE_datconf/d' .config
+echo "# CONFIG_PACKAGE_datconf is not set" >> .config
+
+sed -i '/CONFIG_PACKAGE_conninfra/d' .config
+echo "# CONFIG_PACKAGE_conninfra is not set" >> .config
+
+echo "[diy‑part2.sh] All patches finished"
