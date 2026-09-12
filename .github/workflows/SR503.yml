@@ -51,10 +51,10 @@ jobs:
          clean: ${{github.event.inputs.clean}}
          prefix: ${{ github.workspace }}/openwrt
 
-    - name: Copy custom files
+        - name: Copy custom files
       run: |
-        git config --global url."https://github.com".insteadOf git@github.com:
-        git config --global credential.helper ""
+        git config --global core.askPass ""
+        git config --global credential.helper store
         cp -f ${GITHUB_WORKSPACE}/.config openwrt/.config
         cp -f ${GITHUB_WORKSPACE}/mt7981b-honor-fur-602.dts openwrt/
         chmod +x ${GITHUB_WORKSPACE}/${DIY_P1_SH}
