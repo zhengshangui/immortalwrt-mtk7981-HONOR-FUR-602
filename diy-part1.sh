@@ -32,26 +32,26 @@ UPDATE_PACKAGE() {
 	echo "fetched ${pkg_name}"
 }
 
-# ==========第三方插件拉取列表==========
+# ==========第三方插件拉取列表【全部注释，当前不下载插件】==========
 # OpenAppFilter
-UPDATE_PACKAGE "luci-app-appfilter" "openwrt-develop/OpenAppFilter" "main" ""
+# UPDATE_PACKAGE "luci-app-appfilter" "openwrt-develop/OpenAppFilter" "main" ""
 
 # MosDNS
-UPDATE_PACKAGE "luci-app-mosdns" "sbwml/luci-app-mosdns" "v5" ""
+# UPDATE_PACKAGE "luci-app-mosdns" "sbwml/luci-app-mosdns" "v5" ""
 
 # netspeedtest 测速
-UPDATE_PACKAGE "luci-app-netspeedtest" "sirpdboy/luci-app-netspeedtest" "main" ""
+# UPDATE_PACKAGE "luci-app-netspeedtest" "sirpdboy/luci-app-netspeedtest" "main" ""
 
 # openlist2
-UPDATE_PACKAGE "luci-app-openlist2" "sirpdboy/openlist2" "main" ""
+# UPDATE_PACKAGE "luci-app-openlist2" "sirpdboy/openlist2" "main" ""
 
 # partexp
-UPDATE_PACKAGE "luci-app-partexp" "sirpdboy/luci-app-partexp" "main" ""
+# UPDATE_PACKAGE "luci-app-partexp" "sirpdboy/luci-app-partexp" "main" ""
 
 # quickfile
-UPDATE_PACKAGE "luci-app-quickfile" "sirpdboy/luci-app-quickfile" "main" ""
+# UPDATE_PACKAGE "luci-app-quickfile" "sirpdboy/luci-app-quickfile" "main" ""
 
 # mwan3helper
-UPDATE_PACKAGE "luci-app-mwan3helper" "sirpdboy/luci-app-mwan3helper" "main" ""
+# UPDATE_PACKAGE "luci-app-mwan3helper" "sirpdboy/luci-app-mwan3helper" "main" ""
 
-echo "===== all plugins fetched done ====="
+echo "===== diy‑part1.sh finished，无插件下载 ====="
