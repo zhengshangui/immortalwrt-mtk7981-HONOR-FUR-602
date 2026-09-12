@@ -1,0 +1,138 @@
+name: FUR‑602
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      clean:
+         description: 'clean ccache'
+         default: 'false'
+
+env:
+  REPO_URL: https://github.com/bbb0bbb0bbb/immortalwrt-mt798x-24.10
+  REPO_BRANCH: 2410
+  CONFIG_FILE: .config
+  DIY_P1_SH: ./diy‑part1.sh
+  DIY_P2_SH: ./diy‑part2.sh
+  TZ: Asia/Shanghai
+  
+jobs:
+  build:
+    runs‑on: ubuntu‑22.04
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+    
+    - name: Prepare environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+         sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+         sudo timedatectl set‑timezone "$TZ"
+         sudo mkdir -p /workdir
+         sudo chown $USER:$GROUPS /workdir
+
+    - name: Clone source code
+      working‑directory: /workdir
+      run: |
+         df -hT $PWD
+         git clone $REPO_URL -b $REPO_BRANCH openwrt
+         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+    
+    - name: Cache
+      uses: klever1988/cachewrtbuild@main
+      with:
+         ccache: 'true'
+         mixkey: 'fur602‑2410'
+         toolchain: 'true'
+         skip: 'false'
+         clean: ${{github.event.inputs.clean}}
+         prefix: ${{ github.workspace }}/openwrt
+           
+    - name: Copy custom files
+      run: |
+        cp -f .config openwrt/.config
+        cp -f mt7981b‑honor‑fur‑602.dts openwrt/
+        chmod +x $DIY_P1_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_P1_SH
+
+    - name: Update feeds
+      run: cd openwrt && ./scripts/feeds update -a
+      
+    - name: Install feeds
+      run: cd openwrt && ./scripts/feeds install -a
+
+    - name: Inject dts & device
+      run: |
+         chmod +x $DIY_P2_SH
+         cd openwrt
+         $GITHUB_WORKSPACE/$DIY_P2_SH
+        
+    - name: Download package
+      id: package
+      run: |
+         cd openwrt
+         make defconfig
+         make download -j8
+         find dl -size -1024c -exec ls -l {} \;
+         find dl -size -1024c -exec rm -f {} \;
+
+    - name: Compile the firmware
+      id: compile
+      run: |
+         cd openwrt
+         echo -e "$(nproc) thread compile"
+         make -j$(nproc) || make -j1 V=s
+         echo "release_tag=FUR602‑2410‑$(date +%Y.%m.%d)" >> $GITHUB_ENV
+         echo "release_name=FUR‑602‑OpenWrt‑24.10" >> $GITHUB_ENV
+         echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+
+    - name: Upload firmware directory
+      uses: actions/upload‑artifact@main
+      if: steps.compile.outputs.status == 'success' && !cancelled()
+      with:
+         name: ${{ env.release_tag }}
+         path: openwrt/bin
+
+    - name: Organize files
+      id: organize
+      if: steps.compile.outputs.status == 'success' && !cancelled()
+      run: |
+         tar -cvf openwrt/bin/targets/mediatek/mt7981/packages.tar openwrt/bin/packages
+         cd openwrt/bin/targets/mediatek/mt7981
+         rm -rf packages
+         rm -rf feeds.buildinfo
+         rm -rf sha256sums
+         rm -rf version.buildinfo
+         rm -rf *kernel.bin
+         rm -rf *manifest
+         rm -rf *tar.bz2
+         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+         echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Upload firmware to release
+      uses: softprops/action‑gh‑release@v2
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+         name: ${{ env.release_name }}
+         tag_name: ${{ env.release_tag }}
+         body: |
+             Gateway：192.168.1.1
+             Password：（空，首次登录自行设置）
+             Device：Honor FUR‑602，网页显示 RuiJie SR503
+             Version：immortalwrt-mt798x-24.10
+         files: ${{ env.FIRMWARE }}/*
+
+    - name: Delete older releases
+      uses: dev‑drprasad/delete‑older‑releases@v0.3.3
+      with:
+        keep_latest: 3
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
