@@ -1,4 +1,4 @@
-name: FUR‑602
+name: SR503
 on:
   repository_dispatch:
   workflow_dispatch:
