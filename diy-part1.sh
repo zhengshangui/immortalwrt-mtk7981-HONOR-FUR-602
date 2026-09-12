@@ -11,10 +11,7 @@ git config --global --unset https.proxy
 # GHPROXY="https://mirror.ghproxy.com/"
 GHPROXY=""
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-OPENWRT_DIR="${OPENWRT_DIR:-$(pwd)}"
-
-cd "${OPENWRT_DIR}"
+# ===== 删除这里 SCRIPT_DIR、OPENWRT_DIR、cd "${OPENWRT_DIR}" 全部删掉！=====
 
 UPDATE_PACKAGE() {
 	local pkg_name="$1"
@@ -23,7 +20,6 @@ UPDATE_PACKAGE() {
 	local pkg_dir="$4"
 
 	rm -rf "package/${pkg_name}"
-	# 拼接ghproxy镜像前缀
 	git clone --depth 1 --branch "${pkg_branch}" "${GHPROXY}https://github.com/${pkg_repo}.git" "package/${pkg_name}"
 	if [ -n "${pkg_dir}" ]; then
 		mv "package/${pkg_name}/${pkg_dir}"/* "package/${pkg_name}/"
