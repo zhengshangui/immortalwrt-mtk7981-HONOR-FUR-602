@@ -50,8 +50,8 @@ jobs:
          skip: 'false'
          clean: ${{github.event.inputs.clean}}
          prefix: ${{ github.workspace }}/openwrt
-
-        - name: Copy custom files
+    
+    - name: Copy custom files
       run: |
         git config --global core.askPass ""
         git config --global credential.helper store
