@@ -9,6 +9,7 @@ git config --global --unset https.proxy
 
 # ghproxy加速镜像地址
 # GHPROXY="https://mirror.ghproxy.com/"
+GHPROXY=""
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OPENWRT_DIR="${OPENWRT_DIR:-$(pwd)}"
