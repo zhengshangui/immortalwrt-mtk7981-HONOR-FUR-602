@@ -54,13 +54,16 @@ jobs:
     - name: Copy custom files
       run: |
         git config --global core.askPass ""
-        git config --global credential.helper store
+        git config --global credential.helper ""
+        git config --global --unset http.proxy
+        git config --global --unset https.proxy
         cp -f ${GITHUB_WORKSPACE}/.config openwrt/.config
         cp -f ${GITHUB_WORKSPACE}/mt7981b-honor-fur-602.dts openwrt/
         chmod +x ${GITHUB_WORKSPACE}/${DIY_P1_SH}
         cd openwrt
         ${GITHUB_WORKSPACE}/${DIY_P1_SH}
 
+  
            
     - name: Copy custom files
       run: |
