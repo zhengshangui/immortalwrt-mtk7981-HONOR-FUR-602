@@ -11,13 +11,13 @@ env:
   REPO_URL: https://github.com/bbb0bbb0bbb/immortalwrt-mt798x-24.10
   REPO_BRANCH: 2410
   CONFIG_FILE: .config
-  DIY_P1_SH: ./diy‑part1.sh
-  DIY_P2_SH: ./diy‑part2.sh
+  DIY_P1_SH: ./diy-part1.sh
+  DIY_P2_SH: ./diy-part2.sh
   TZ: Asia/Shanghai
   
 jobs:
   build:
-    runs‑on: ubuntu‑22.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
       
@@ -30,12 +30,12 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |
          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-         sudo timedatectl set‑timezone "$TZ"
+         sudo timedatectl set-timezone "$TZ"
          sudo mkdir -p /workdir
          sudo chown $USER:$GROUPS /workdir
 
     - name: Clone source code
-      working‑directory: /workdir
+      working-directory: /workdir
       run: |
          df -hT $PWD
          git clone $REPO_URL -b $REPO_BRANCH openwrt
@@ -45,7 +45,7 @@ jobs:
       uses: klever1988/cachewrtbuild@main
       with:
          ccache: 'true'
-         mixkey: 'fur602‑2410'
+         mixkey: 'fur602-2410'
          toolchain: 'true'
          skip: 'false'
          clean: ${{github.event.inputs.clean}}
@@ -54,7 +54,7 @@ jobs:
     - name: Copy custom files
       run: |
         cp -f .config openwrt/.config
-        cp -f mt7981b‑honor‑fur‑602.dts openwrt/
+        cp -f mt7981b-honor-fur-602.dts openwrt/
         chmod +x $DIY_P1_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
@@ -86,8 +86,8 @@ jobs:
          cd openwrt
          echo -e "$(nproc) thread compile"
          make -j$(nproc) || make -j1 V=s
-         echo "release_tag=FUR602‑2410‑$(date +%Y.%m.%d)" >> $GITHUB_ENV
-         echo "release_name=FUR‑602‑OpenWrt‑24.10" >> $GITHUB_ENV
+         echo "release_tag=FUR602-2410-$(date +%Y.%m.%d)" >> $GITHUB_ENV
+         echo "release_name=FUR-602-OpenWrt-24.10" >> $GITHUB_ENV
          echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Check space usage
@@ -95,7 +95,7 @@ jobs:
       run: df -hT
 
     - name: Upload firmware directory
-      uses: actions/upload‑artifact@main
+      uses: actions/upload-artifact@main
       if: steps.compile.outputs.status == 'success' && !cancelled()
       with:
          name: ${{ env.release_tag }}
@@ -118,7 +118,7 @@ jobs:
          echo "status=success" >> $GITHUB_OUTPUT
         
     - name: Upload firmware to release
-      uses: softprops/action‑gh‑release@v2
+      uses: softprops/action-gh-release@v2
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
          name: ${{ env.release_name }}
@@ -131,7 +131,7 @@ jobs:
          files: ${{ env.FIRMWARE }}/*
 
     - name: Delete older releases
-      uses: dev‑drprasad/delete‑older‑releases@v0.3.3
+      uses: dev-drprasad/delete-older-releases@v0.3.3
       with:
         keep_latest: 3
       env:
