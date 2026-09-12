@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e -o pipefail
 
+# 修复CI环境git弹窗账号询问报错128
+git config --global core.askPass ""
+git config --global credential.helper ""
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+
+# ghproxy加速镜像地址
+GHPROXY="https://mirror.ghproxy.com/"
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OPENWRT_DIR="${OPENWRT_DIR:-$(pwd)}"
 
@@ -13,7 +22,8 @@ UPDATE_PACKAGE() {
 	local pkg_dir="$4"
 
 	rm -rf "package/${pkg_name}"
-	git clone --depth 1 --branch "${pkg_branch}" "https://github.com/${pkg_repo}.git" "package/${pkg_name}"
+	# 拼接ghproxy镜像前缀
+	git clone --depth 1 --branch "${pkg_branch}" "${GHPROXY}https://github.com/${pkg_repo}.git" "package/${pkg_name}"
 	if [ -n "${pkg_dir}" ]; then
 		mv "package/${pkg_name}/${pkg_dir}"/* "package/${pkg_name}/"
 	fi
