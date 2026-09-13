@@ -27,6 +27,9 @@ EOM
 #git clone https://github.com/kenzok8/small-package package/small-package
 #git clone https://github.com/Zxilly/UA2F package/UA2F
 
+# =========关键：脚本向源码内部的feeds.conf.default追加hanwckf mt‑wifi源=========
+echo 'src-git mt_wifi https://github.com/hanwckf/mt7981-mtwifi-feed.git;main' >> feeds.conf.default
+
 # ========== 执行feeds更新 ==========
 ./scripts/feeds update -a
 
