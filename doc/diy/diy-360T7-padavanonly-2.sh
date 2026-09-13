@@ -118,7 +118,7 @@ UPDATE_VERSION "sing-box"
 set -e
 
 # ========== 注入DTS文件 START ==========
-DTS_SRC="../mt7981b-honor-fur-602.dts"
+DTS_SRC="./mt7981b-honor-fur-602.dts"
 DTS_DST="target/linux/mediatek/dts/mt7981b-honor-fur-602.dts"
 
 if [ -f "$DTS_SRC" ]; then
