@@ -117,6 +117,21 @@ UPDATE_VERSION "sing-box"
 #!/bin/bash
 set -e
 
+# 修复 binutils‑2.42 musl off64_t fseeko64 编译失败
+patch_binutils_musl() {
+    local bf_dir="build_dir/toolchain-aarch64_cortex-a53_gcc-13.3.0_musl/binutils-2.42/binutils"
+    if [ -d "$bf_dir" ];then
+        cd "$bf_dir"
+        sed -i 's/off64_t/off_t/g' readelf.c
+        sed -i 's/fseeko64/fseeko/g' readelf.c
+        cd ../../../..
+    fi
+}
+patch_binutils_musl
+
+
+
+
 # ========== 注入DTS文件 START ==========
 DTS_SRC="${GITHUB_WORKSPACE}/mt7981b-honor-fur-602.dts"
 DTS_DST="target/linux/mediatek/dts/mt7981b-honor-fur-602.dts"
