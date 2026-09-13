@@ -30,8 +30,10 @@ EOM
 # ========== 执行feeds更新 ==========
 ./scripts/feeds update -a
 
-# ========= 修复 rd05a1 循环依赖【必须放在 feeds update之后，install之前】 =========
-sed -i '/depends on PACKAGE_rd05a1/d' feeds/mt_wifi/package/rd05a1/Kconfig
+# ========= 修复 rd05a1 循环依赖：仅文件存在时执行 =========
+if [ -f feeds/mt_wifi/package/rd05a1/Kconfig ]; then
+    sed -i '/depends on PACKAGE_rd05a1/d' feeds/mt_wifi/package/rd05a1/Kconfig
+fi
 
 # ========= feeds安装 =========
 ./scripts/feeds install -a
