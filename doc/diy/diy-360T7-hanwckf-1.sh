@@ -1,20 +1,10 @@
-# ===================== 此处粘贴你原来全部的 diy‑part1.sh 原有代码 =====================
-# 例如feeds修改、软件包开关、config修改等全部原有逻辑放在下面
 #!/bin/bash
 set -e
 # binutils 2.42 musl 修复，保留2.42版本
 cat >> toolchain/binutils/Makefile <<'EOM'
 EXTRA_CFLAGS += -D_LARGEFILE64_SOURCE
 EOM
-# 下面保留你原来diy-360T7-hanwckf-1.sh全部原有代码
 
-# diy‑part1.sh 开头加入
-rm -f .config
-make defconfig
-
-
-#!/bin/bash
-#
 # Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
 #
 # This is free software, licensed under the MIT License.
@@ -37,3 +27,11 @@ make defconfig
 #git clone https://github.com/kenzok8/small-package package/small-package
 #git clone https://github.com/Zxilly/UA2F package/UA2F
 
+# ========== 执行feeds更新 ==========
+./scripts/feeds update -a
+
+# ========= 修复 rd05a1 循环依赖【必须放在 feeds update之后，install之前】 =========
+sed -i '/depends on PACKAGE_rd05a1/d' feeds/mt_wifi/package/rd05a1/Kconfig
+
+# ========= feeds安装 =========
+./scripts/feeds install -a
