@@ -118,9 +118,10 @@ UPDATE_VERSION "sing-box"
 set -e
 
 # ========== 注入DTS文件 START ==========
-# GITHUB_WORKSPACE = GitHub仓库根目录，这里才放着你的dts
 DTS_SRC="${GITHUB_WORKSPACE}/mt7981b-honor-fur-602.dts"
 DTS_DST="target/linux/mediatek/dts/mt7981b-honor-fur-602.dts"
+
+mkdir -p $(dirname "$DTS_DST")
 
 if [ -f "$DTS_SRC" ]; then
     cp -f "$DTS_SRC" "$DTS_DST"
@@ -131,7 +132,6 @@ else
     exit 1
 fi
 # ========== 注入DTS END ==========
-
 
 # 添加设备到filogic.mk
 FILOGIC_MK="target/linux/mediatek/image/filogic.mk"
