@@ -48,16 +48,15 @@ jobs:
       uses: klever1988/cachewrtbuild@main
       with:
          ccache: 'true'
-         mixkey: '360T7-padavanonly'
+         mixkey: 'fur602-2410'
          toolchain: 'true'
-         skip: 'true'
+         skip: 'false'
          clean: ${{github.event.inputs.clean}}
          prefix: ${{ github.workspace }}/openwrt
            
     - name: Load custom feeds
       run: |
          [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-         cat ./doc/config/ua2f.config >> openwrt/.config
          chmod +x $DIY_P1_SH
          cd openwrt
          $GITHUB_WORKSPACE/$DIY_P1_SH
@@ -91,8 +90,8 @@ jobs:
          cd openwrt
          echo -e "$(nproc) thread compile"
          make -j$(nproc) || make -j1 V=s
-         echo "release_tag=360T7-padavanonly-OpenWrt-mini-$(date +%Y.%m.%d)" >> $GITHUB_ENV
-         echo "release_name=360T7-padavanonly-OpenWrt-mini" >> $GITHUB_ENV
+         echo "release_tag=FUR602-SR503-2410-$(date +%Y.%m.%d)" >> $GITHUB_ENV
+         echo "release_name=FUR602-SR503-ImmortalWrt-24.10" >> $GITHUB_ENV
          echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Check space usage
@@ -131,7 +130,8 @@ jobs:
          body: |
              Gateway：192.168.1.1
              Password：
-             Application：mwan3，ramfree，ua2f
+             Model show：RuiJie SR503
+             Chip: MT7981 FUR602
          files: ${{ env.FIRMWARE }}/*
 
     - name: Delete older releases
