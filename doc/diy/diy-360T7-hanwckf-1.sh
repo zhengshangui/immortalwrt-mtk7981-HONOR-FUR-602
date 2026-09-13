@@ -1,13 +1,12 @@
+# ===================== 此处粘贴你原来全部的 diy‑part1.sh 原有代码 =====================
+# 例如feeds修改、软件包开关、config修改等全部原有逻辑放在下面
 #!/bin/bash
 set -e
-
-## binutils‑2.42 + musl aarch64 修复 off64_t 报错，启用musl原生大文件64接口
+# binutils 2.42 musl 修复，保留2.42版本
 cat >> toolchain/binutils/Makefile <<'EOM'
 EXTRA_CFLAGS += -D_LARGEFILE64_SOURCE
 EOM
-
-# ===================== 此处粘贴你原来全部的 diy‑part1.sh 原有代码 =====================
-# 例如feeds修改、软件包开关、config修改等全部原有逻辑放在下面
+# 下面保留你原来diy-360T7-hanwckf-1.sh全部原有代码
 
 
 
