@@ -114,3 +114,39 @@ UPDATE_VERSION() {
 #UPDATE_VERSION "软件包名" "测试版，true，可选，默认为否"
 UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
+#!/bin/bash
+set -e
+
+# ========== 注入DTS文件 START ==========
+DTS_SRC="../mt7981b-honor-fur-602.dts"
+DTS_DST="target/linux/mediatek/dts/mt7981b-honor-fur-602.dts"
+
+if [ -f "$DTS_SRC" ]; then
+    cp -f "$DTS_SRC" "$DTS_DST"
+    echo "[diy] DTS copied to $DTS_DST"
+else
+    echo "[diy] ERROR: DTS source file missing at $DTS_SRC"
+    exit 1
+fi
+# ========== 注入DTS END ==========
+
+# 添加设备到filogic.mk
+FILOGIC_MK="target/linux/mediatek/image/filogic.mk"
+if ! grep -q "honor_fur602" "$FILOGIC_MK"; then
+cat >> "$FILOGIC_MK" <<EOF
+define Device/honor_fur602
+  DEVICE_VENDOR := Honor
+  DEVICE_MODEL := FUR602
+  DEVICE_DTS := mt7981b-honor-fur-602
+  DEVICE_PACKAGES := kmod-mt_wifi mtwifi-cfg
+endef
+TARGET_DEVICES += honor_fur602
+EOF
+echo "[diy] add device honor_fur602 into filogic.mk"
+fi
+
+# 关闭 datconf，解决24.10编译失败
+sed -i '/CONFIG_PACKAGE_datconf/d' .config
+echo "# CONFIG_PACKAGE_datconf is not set" >> .config
+
+echo "[diy] All DIY patch finished"
