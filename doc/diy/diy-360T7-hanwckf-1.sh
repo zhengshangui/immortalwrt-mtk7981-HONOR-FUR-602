@@ -8,6 +8,9 @@ EXTRA_CFLAGS += -D_LARGEFILE64_SOURCE
 EOM
 # 下面保留你原来diy-360T7-hanwckf-1.sh全部原有代码
 
+# diy‑part1.sh 开头加入
+rm -f .config
+make defconfig
 
 
 #!/bin/bash
