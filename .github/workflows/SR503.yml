@@ -10,6 +10,7 @@ on:
 
 
 env:
+  BUILD_CLEAN: true
   REPO_URL: https://github.com/bbb0bbb0bbb/immortalwrt-mt798x-24.10
   REPO_BRANCH: 2410
   FEEDS_CONF: feeds.conf.default
@@ -88,6 +89,10 @@ jobs:
       id: compile
       run: |
          cd openwrt
+         # 【新增】如果BUILD_CLEAN开启，执行distclean清空旧编译缓存
+         if [ "$BUILD_CLEAN" = "true" ]; then
+           make distclean
+         fi
          echo -e "$(nproc) thread compile"
          make -j$(nproc) || make -j1 V=s
          echo "release_tag=FUR602-SR503-2410-$(date +%Y.%m.%d)" >> $GITHUB_ENV
