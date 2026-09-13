@@ -12,15 +12,12 @@ UPDATE_PACKAGE() {
 
 	echo " "
 	echo "Install plugin: $PKG_NAME"
-	# ============【删除了skip return，启用插件拉取】============
 
 	# 删除本地可能存在的不同名称的软件包
 	for NAME in "${PKG_LIST[@]}"; do
-		# 查找匹配的目录
 		echo "Search directory: $NAME"
 		local FOUND_DIRS=$(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
 
-		# 删除找到的目录
 		if [ -n "$FOUND_DIRS" ]; then
 			while read -r DIR; do
 				rm -rf "$DIR"
@@ -43,21 +40,13 @@ UPDATE_PACKAGE() {
 	fi
 }
 
-# 调用示例
-# UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master" "" "custom_name1 custom_name2"
-# UPDATE_PACKAGE "open-app-filter" "destan19/OpenAppFilter" "master" "" "luci-app-appfilter oaf" 这样会把原有的open-app-filter，luci-app-appfilter，oaf相关组件删除，不会出现coremark错误。
-
-# UPDATE_PACKAGE "包名" "项目地址" "项目分支" "pkg/name，可选，pkg为从大杂烩中单独提取包名插件；name为重命名为包名"
+# 拉取主题与插件
 UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-24.10"
 UPDATE_PACKAGE "aurora" "eamonxg/luci-theme-aurora" "master"
 UPDATE_PACKAGE "aurora-config" "eamonxg/luci-app-aurora-config" "master"
 UPDATE_PACKAGE "kucat" "sirpdboy/luci-theme-kucat" "master"
 UPDATE_PACKAGE "kucat-config" "sirpdboy/luci-app-kucat-config" "master"
 
-# UPDATE_PACKAGE "homeproxy" "VIKINGYFY/homeproxy" "main"
-# UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
-# UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
-# UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
@@ -112,11 +101,10 @@ UPDATE_VERSION() {
 	done
 }
 
-#UPDATE_VERSION "软件包名" "测试版，true，可选，默认为否"
 UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
 
-# 修复 binutils‑2.42 musl off64_t fseeko64 编译失败
+# 修复 binutils‑2.42 musl
 patch_binutils_musl() {
     local bf_dir="build_dir/toolchain-aarch64_cortex-a53_gcc-13.3.0_musl/binutils-2.42/binutils"
     if [ -d "$bf_dir" ];then
@@ -127,55 +115,3 @@ patch_binutils_musl() {
     fi
 }
 patch_binutils_musl
-
-
-#!/bin/bash
-set -e
-# 兜底：强制关闭 rd05a1 包，如果mt_wifi拉取失败，直接屏蔽该选项避免Kconfig报错
-sed -i '/CONFIG_PACKAGE_rd05a1/d' .config
-echo "# CONFIG_PACKAGE_rd05a1 is not set" >> .config
-
-# =====下面保留你原来所有的diy-part2代码（DTS复制、filogic.mk补丁等）=====
-
-
-# ========== 注入DTS文件 START ==========
-DTS_SRC="${GITHUB_WORKSPACE}/mt7981b-honor-fur-602.dts"
-DTS_DST="target/linux/mediatek/dts/mt7981b-honor-fur-602.dts"
-
-mkdir -p $(dirname "$DTS_DST")
-
-if [ -f "$DTS_SRC" ]; then
-    cp -f "$DTS_SRC" "$DTS_DST"
-    echo "[diy] DTS copied from repo $DTS_SRC to $DTS_DST"
-else
-    echo "[diy] ERROR: DTS source file missing at $DTS_SRC"
-    ls -la ${GITHUB_WORKSPACE}/
-    exit 1
-fi
-
-
-# ========== 注入DTS END ==========
-
-# 添加设备到filogic.mk
-FILOGIC_MK="target/linux/mediatek/image/filogic.mk"
-if ! grep -q "honor_fur602" "$FILOGIC_MK"; then
-cat >> "$FILOGIC_MK" <<EOF
-define Device/honor_fur602
-  DEVICE_VENDOR := Honor
-  DEVICE_MODEL := FUR602
-  DEVICE_DTS := mt7981b-honor-fur-602
-  DEVICE_PACKAGES := kmod-mt_wifi mtwifi-cfg
-endef
-TARGET_DEVICES += honor_fur602
-EOF
-echo "[diy] add device honor_fur602 into filogic.mk"
-fi
-
-# 关闭 datconf，解决24.10编译失败
-sed -i '/CONFIG_PACKAGE_datconf/d' .config
-echo "# CONFIG_PACKAGE_datconf is not set" >> .config
-
-# 【重要】因为filogic.mk写死kmod-mt_wifi，所以这里不再屏蔽rd05a1，依靠part1的mt_wifi feed+sed修复rd05a1循环依赖
-# 如果你后续mt_wifi下载再次失败，才需要在这里加屏蔽rd05a1
-
-echo "[diy] All DIY patch finished"
