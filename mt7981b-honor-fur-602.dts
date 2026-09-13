@@ -5,7 +5,7 @@
 
 / {
 	compatible = "honor,fur‑602", "mediatek,mt7981";
-	model = "Honor FUR‑602";
+	model = "Ruijie SR503";
 
 	aliases {
 		serial0 = &uart0;
