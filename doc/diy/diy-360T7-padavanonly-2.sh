@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 #安装和更新软件包
 UPDATE_PACKAGE() {
@@ -10,8 +11,8 @@ UPDATE_PACKAGE() {
 	local REPO_NAME=${PKG_REPO#*/}
 
 	echo " "
-	echo "Skip install plugin: $PKG_NAME"
-	return 0
+	echo "Install plugin: $PKG_NAME"
+	# ============【删除了skip return，启用插件拉取】============
 
 	# 删除本地可能存在的不同名称的软件包
 	for NAME in "${PKG_LIST[@]}"; do
@@ -114,8 +115,6 @@ UPDATE_VERSION() {
 #UPDATE_VERSION "软件包名" "测试版，true，可选，默认为否"
 UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
-#!/bin/bash
-set -e
 
 # 修复 binutils‑2.42 musl off64_t fseeko64 编译失败
 patch_binutils_musl() {
@@ -166,5 +165,8 @@ fi
 # 关闭 datconf，解决24.10编译失败
 sed -i '/CONFIG_PACKAGE_datconf/d' .config
 echo "# CONFIG_PACKAGE_datconf is not set" >> .config
+
+# 【重要】因为filogic.mk写死kmod-mt_wifi，所以这里不再屏蔽rd05a1，依靠part1的mt_wifi feed+sed修复rd05a1循环依赖
+# 如果你后续mt_wifi下载再次失败，才需要在这里加屏蔽rd05a1
 
 echo "[diy] All DIY patch finished"
