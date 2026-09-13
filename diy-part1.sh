@@ -2,10 +2,10 @@
 set -e -o pipefail
 
 # 修复CI环境git弹窗账号询问报错128
-git config --global core.askPass ""
-git config --global credential.helper ""
-git config --global --unset http.proxy
-git config --global --unset https.proxy
+# git config --global core.askPass ""
+# git config --global credential.helper ""
+# git config --global --unset http.proxy
+# git config --global --unset https.proxy
 
 # ghproxy加速镜像地址
 # GHPROXY="https://mirror.ghproxy.com/"
