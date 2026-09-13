@@ -129,6 +129,13 @@ patch_binutils_musl() {
 patch_binutils_musl
 
 
+#!/bin/bash
+set -e
+# 兜底：强制关闭 rd05a1 包，如果mt_wifi拉取失败，直接屏蔽该选项避免Kconfig报错
+sed -i '/CONFIG_PACKAGE_rd05a1/d' .config
+echo "# CONFIG_PACKAGE_rd05a1 is not set" >> .config
+
+# =====下面保留你原来所有的diy-part2代码（DTS复制、filogic.mk补丁等）=====
 
 
 # ========== 注入DTS文件 START ==========
@@ -145,6 +152,8 @@ else
     ls -la ${GITHUB_WORKSPACE}/
     exit 1
 fi
+
+
 # ========== 注入DTS END ==========
 
 # 添加设备到filogic.mk
