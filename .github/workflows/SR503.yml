@@ -1,4 +1,5 @@
 name: SR503
+
 on:
   repository_dispatch:
   workflow_dispatch:
@@ -7,12 +8,14 @@ on:
          description: 'clean ccache'
          default: 'false'
 
+
 env:
   REPO_URL: https://github.com/bbb0bbb0bbb/immortalwrt-mt798x-24.10
   REPO_BRANCH: 2410
-  CONFIG_FILE: .config
-  DIY_P1_SH: ./diy-part1.sh
-  DIY_P2_SH: ./diy-part2.sh
+  FEEDS_CONF: feeds.conf.default
+  CONFIG_FILE: ./doc/config/mt7981-ax3000-mtwifi-cfg.config
+  DIY_P1_SH: ./doc/diy/diy-360T7-hanwckf-1.sh
+  DIY_P2_SH: ./doc/diy/diy-360T7-padavanonly-2.sh
   TZ: Asia/Shanghai
   
 jobs:
@@ -45,25 +48,19 @@ jobs:
       uses: klever1988/cachewrtbuild@main
       with:
          ccache: 'true'
-         mixkey: 'fur602-2410'
+         mixkey: '360T7-padavanonly'
          toolchain: 'true'
-         skip: 'false'
+         skip: 'true'
          clean: ${{github.event.inputs.clean}}
          prefix: ${{ github.workspace }}/openwrt
-    
-    # =========【只保留一次 Copy custom files 执行 part1】=========
-    - name: Copy custom files & Run diy-part1
+           
+    - name: Load custom feeds
       run: |
-        git config --global core.askPass ""
-        git config --global credential.helper ""
-        git config --global --unset http.proxy
-        git config --global --unset https.proxy
-        cp -f ${GITHUB_WORKSPACE}/.config openwrt/.config
-        cp -f ${GITHUB_WORKSPACE}/mt7981b-honor-fur-602.dts openwrt/
-
-        chmod +x ${GITHUB_WORKSPACE}/${DIY_P1_SH}
-        cd openwrt
-        ${GITHUB_WORKSPACE}/${DIY_P1_SH}
+         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+         cat ./doc/config/ua2f.config >> openwrt/.config
+         chmod +x $DIY_P1_SH
+         cd openwrt
+         $GITHUB_WORKSPACE/$DIY_P1_SH
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
@@ -71,10 +68,11 @@ jobs:
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
 
-    # 注入DTS、机型补丁（diy-part2）
-    - name: Inject dts & device config (diy-part2)
+    - name: Load custom configuration
       run: |
-         chmod +x $GITHUB_WORKSPACE/$DIY_P2_SH
+         [ -e files ] && mv files openwrt/files
+         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+         chmod +x $DIY_P2_SH
          cd openwrt
          $GITHUB_WORKSPACE/$DIY_P2_SH
         
@@ -93,8 +91,8 @@ jobs:
          cd openwrt
          echo -e "$(nproc) thread compile"
          make -j$(nproc) || make -j1 V=s
-         echo "release_tag=FUR602-2410-$(date +%Y.%m.%d)" >> $GITHUB_ENV
-         echo "release_name=FUR-602-OpenWrt-24.10" >> $GITHUB_ENV
+         echo "release_tag=360T7-padavanonly-OpenWrt-mini-$(date +%Y.%m.%d)" >> $GITHUB_ENV
+         echo "release_name=360T7-padavanonly-OpenWrt-mini" >> $GITHUB_ENV
          echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Check space usage
@@ -132,9 +130,8 @@ jobs:
          tag_name: ${{ env.release_tag }}
          body: |
              Gateway：192.168.1.1
-             Password：（空，首次登录自行设置）
-             Device：Honor FUR‑602
-             Version：immortalwrt-mt798x-24.10
+             Password：
+             Application：mwan3，ramfree，ua2f
          files: ${{ env.FIRMWARE }}/*
 
     - name: Delete older releases
