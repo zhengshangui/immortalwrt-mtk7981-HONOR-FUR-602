@@ -1,13 +1,3 @@
-#!/bin/bash
-set -e
-
-# binutils 2.42 musl 修复，仅当不存在才写入，避免重复追加
-if ! grep -q "EXTRA_CFLAGS += -D_LARGEFILE64_SOURCE" toolchain/binutils/Makefile; then
-cat >> toolchain/binutils/Makefile <<'EOM'
-EXTRA_CFLAGS += -D_LARGEFILE64_SOURCE
-EOM
-fi
-
 # Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
 #
 # This is free software, licensed under the MIT License.
@@ -30,8 +20,3 @@ fi
 #git clone https://github.com/kenzok8/small-package package/small-package
 #git clone https://github.com/Zxilly/UA2F package/UA2F
 
-# ========== 执行feeds更新 ==========
-./scripts/feeds update -a
-
-# ========= feeds安装 =========
-./scripts/feeds install -a
