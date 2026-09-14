@@ -104,6 +104,18 @@ UPDATE_VERSION() {
 		fi
 	done
 }
+#!/bin/bash
+set -e
+
+# --------方案A openssl降级补丁放在这里----------
+# 修复 openssl‑3.4.0 musl‑gcc copts编译报错，降级3.3.2
+sed -i 's/OPENSSL_VERSION:=3.4.0/OPENSSL_VERSION:=3.3.2/g' package/libs/openssl/Makefile
+sed -i 's/OPENSSL_HASH:=.*/OPENSSL_HASH:=2e4a41b738ab8e87877f2f1471e44f91/g' package/libs/openssl/Makefile
+
+# 复制FUR‑602 DTS
+DTS_SRC="../mt7981b‑honor‑fur‑602.dts"
+DTS_DST="target/linux/mediatek/dts/mt7981b‑honor‑fur‑602.dts"
+
 
 UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
