@@ -1,5 +1,11 @@
 #!/bin/bash
 set -e
+#!/bin/bash
+set -e
+# 增加git超时，避免github https 128错误
+git config --global http.lowSpeedLimit 1000
+git config --global http.lowSpeedTime 60
+git config --global core.compression 0
 
 #安装和更新软件包
 UPDATE_PACKAGE() {
