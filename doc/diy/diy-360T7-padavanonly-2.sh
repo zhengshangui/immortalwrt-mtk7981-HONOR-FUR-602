@@ -1,7 +1,5 @@
 #!/bin/bash
 set -e
-#!/bin/bash
-set -e
 # 增加git超时，避免github https 128错误
 git config --global http.lowSpeedLimit 1000
 git config --global http.lowSpeedTime 60
@@ -34,7 +32,7 @@ UPDATE_PACKAGE() {
 		fi
 	done
 
-	# 克隆 GitHub 仓库
+	# 原生github，不使用代理
 	git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git"
 
 	# 处理克隆的仓库
@@ -109,15 +107,3 @@ UPDATE_VERSION() {
 
 UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
-
-# 修复 binutils‑2.42 musl
-patch_binutils_musl() {
-    local bf_dir="build_dir/toolchain-aarch64_cortex-a53_gcc-13.3.0_musl/binutils-2.42/binutils"
-    if [ -d "$bf_dir" ];then
-        cd "$bf_dir"
-        sed -i 's/off64_t/off_t/g' readelf.c
-        sed -i 's/fseeko64/fseeko/g' readelf.c
-        cd ../../../..
-    fi
-}
-patch_binutils_musl
