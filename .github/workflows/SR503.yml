@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       clean:
-         description: 'clean ccache'
-         default: 'false'
-
+        description: 'clean ccache'
+        type: boolean
+        default: false
 
 env:
   REPO_URL: https://github.com/bbb0bbb0bbb/immortalwrt-mt798x-24.10
@@ -49,11 +49,11 @@ jobs:
     - name: Cache
       uses: klever1988/cachewrtbuild@main
       with:
-         ccache: 'true'
+         ccache: true
          mixkey: 'fur602-2410'
-         toolchain: 'true'
-         skip: 'false'
-         clean: ${{github.event.inputs.clean}}
+         toolchain: true
+         skip: false
+         clean: ${{ github.event.inputs.clean }}
          prefix: ${{ github.workspace }}/openwrt
            
     - name: Load custom feeds
@@ -73,9 +73,8 @@ jobs:
       run: |
          [ -e files ] && mv files openwrt/files
          [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-         chmod +x $DIY_P2_SH
          cd openwrt
-         $GITHUB_WORKSPACE/$DIY_P2_SH
+         # $GITHUB_WORKSPACE/$DIY_P2_SH  # 已合并至 DIY_P1_SH，此处无需再执行
         
     - name: Download package
       id: package
