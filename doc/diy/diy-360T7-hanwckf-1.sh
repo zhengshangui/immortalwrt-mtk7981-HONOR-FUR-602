@@ -1,9 +1,12 @@
 #!/bin/bash
 set -e
-# binutils 2.42 musl 修复，保留2.42版本
+
+# binutils 2.42 musl 修复，仅当不存在才写入，避免重复追加
+if ! grep -q "EXTRA_CFLAGS += -D_LARGEFILE64_SOURCE" toolchain/binutils/Makefile; then
 cat >> toolchain/binutils/Makefile <<'EOM'
 EXTRA_CFLAGS += -D_LARGEFILE64_SOURCE
 EOM
+fi
 
 # Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
 #
