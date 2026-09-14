@@ -15,7 +15,7 @@ env:
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: ./doc/config/mt7981-ax3000-mtwifi-cfg.config
   DIY_P1_SH: ./doc/diy/diy-360T7-hanwckf-1.sh
-  DIY_P2_SH: ./doc/diy/diy-360T7-padavanonly-2.sh
+  # DIY_P2_SH: ./doc/diy/diy-360T7-padavanonly-2.sh
   TZ: Asia/Shanghai
   
 jobs:
