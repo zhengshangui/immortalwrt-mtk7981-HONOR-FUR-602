@@ -58,10 +58,23 @@ jobs:
            
     - name: Load custom feeds
       run: |
-         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-         chmod +x $DIY_P1_SH
-         cd openwrt
-         $GITHUB_WORKSPACE/$DIY_P1_SH
+         # 1. 检查 feeds 配置文件是否存在
+         if [ -f "$FEEDS_CONF" ]; then
+             mv $FEEDS_CONF openwrt/feeds.conf.default
+         else
+             echo "⚠️ 未找到 $FEEDS_CONF，跳过替换。"
+         fi
+         
+         # 2. 检查 DIY 脚本文件是否存在（针对之前的报错核心修复）
+         if [ -f "$DIY_P1_SH" ]; then
+             echo "✅ 找到 DIY 脚本: $DIY_P1_SH"
+             chmod +x $DIY_P1_SH
+             cd openwrt
+             $GITHUB_WORKSPACE/$DIY_P1_SH
+         else
+             echo "⚠️ 警告：找不到 $DIY_P1_SH 文件！请检查文件是否已推送到仓库。"
+             ls -la ./doc/diy/ # 打印目录内容以便排查
+         fi
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
@@ -71,11 +84,23 @@ jobs:
 
     - name: Load custom configuration
       run: |
-         [ -e files ] && mv files openwrt/files
-         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-         cd openwrt
-         # $GITHUB_WORKSPACE/$DIY_P2_SH  # 已合并至 DIY_P1_SH，此处无需再执行
-        
+         # 1. 检查 files 目录是否存在
+         if [ -d "files" ]; then
+             echo "✅ 找到 files 目录，移动到 openwrt 中。"
+             mv files openwrt/files
+         else
+             echo "⚠️ 警告：未找到 files 目录，跳过。"
+         fi
+         
+         # 2. 检查 .config 配置文件是否存在
+         if [ -f "$CONFIG_FILE" ]; then
+             echo "✅ 找到配置文件: $CONFIG_FILE"
+             mv $CONFIG_FILE openwrt/.config
+         else
+             echo "⚠️ 警告：找不到 $CONFIG_FILE 文件！将使用默认配置编译。"
+             ls -la ./doc/config/ # 打印目录内容以便排查
+         fi
+
     - name: Download package
       id: package
       run: |
