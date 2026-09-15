@@ -63,15 +63,9 @@ UPDATE_PACKAGE "qbittorrent" "sbwml/luci-app-qbittorrent" "master" "" "qt6base q
 UPDATE_PACKAGE "qmodem" "FUjr/QModem" "main"
 UPDATE_PACKAGE "quickfile" "sbwml/luci-app-quickfile" "main"
 
-# 生成配置，双重保险关闭conninfra相关模块
-make defconfig
-sed -i 's/CONFIG_PACKAGE_kmod-conninfra=y/# CONFIG_PACKAGE_kmod-conninfra is not set/g' .config
-sed -i 's/CONFIG_PACKAGE_kmod-apconninfra=y/# CONFIG_PACKAGE_kmod-apconninfra is not set/g' .config
-make olddefconfig
-
 # 复制FUR‑602 DTS设备树
 if [ -f "../mt7981b-honor-fur-602.dts" ]; then
     cp -f ../mt7981b-honor-fur-602.dts target/linux/mediatek/dts/mt7981b-honor-fur-602.dts
 fi
 
-echo "DIY‑part2 script finished."
+echo "DIY script finished."
