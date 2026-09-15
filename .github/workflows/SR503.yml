@@ -15,7 +15,6 @@ env:
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: ./doc/config/mt7981-ax3000-mtwifi-cfg.config
   DIY_P1_SH: ./doc/diy/diy-360T7-hanwckf-1.sh
-  # DIY_P2_SH: ./doc/diy/diy-360T7-padavanonly-2.sh
   TZ: Asia/Shanghai
   
 jobs:
@@ -58,22 +57,11 @@ jobs:
            
     - name: Load custom feeds
       run: |
-         # 1. 检查 feeds 配置文件是否存在
+         # 只替换feeds配置，不再执行DIY脚本
          if [ -f "$FEEDS_CONF" ]; then
              mv $FEEDS_CONF openwrt/feeds.conf.default
          else
              echo "⚠️ 未找到 $FEEDS_CONF，跳过替换。"
-         fi
-         
-         # 2. 检查 DIY 脚本文件是否存在（针对之前的报错核心修复）
-         if [ -f "$DIY_P1_SH" ]; then
-             echo "✅ 找到 DIY 脚本: $DIY_P1_SH"
-             chmod +x $DIY_P1_SH
-             cd openwrt
-             $GITHUB_WORKSPACE/$DIY_P1_SH
-         else
-             echo "⚠️ 警告：找不到 $DIY_P1_SH 文件！请检查文件是否已推送到仓库。"
-             ls -la ./doc/diy/ # 打印目录内容以便排查
          fi
 
     - name: Update feeds
@@ -81,6 +69,19 @@ jobs:
       
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
+
+    # 【关键】feeds安装完成后，再运行DIY脚本（删除conninfra、拉插件、拷贝DTS）
+    - name: Run merged DIY script
+      run: |
+         if [ -f "$DIY_P1_SH" ]; then
+             echo "✅ 执行DIY脚本: $DIY_P1_SH"
+             chmod +x $DIY_P1_SH
+             cd openwrt
+             $GITHUB_WORKSPACE/$DIY_P1_SH
+         else
+             echo "⚠️ 警告：找不到 $DIY_P1_SH 文件！请检查文件是否已推送到仓库。"
+             ls -la ./doc/diy/
+         fi
 
     - name: Load custom configuration
       run: |
@@ -98,8 +99,12 @@ jobs:
              mv $CONFIG_FILE openwrt/.config
          else
              echo "⚠️ 警告：找不到 $CONFIG_FILE 文件！将使用默认配置编译。"
-             ls -la ./doc/config/ # 打印目录内容以便排查
+             ls -la ./doc/config/
          fi
+         # 强制关闭conninfra模块，防止配置文件里意外开启
+         cd openwrt
+         sed -i 's/CONFIG_PACKAGE_kmod-conninfra=y/# CONFIG_PACKAGE_kmod-conninfra is not set/g' .config
+         sed -i 's/CONFIG_PACKAGE_kmod-apconninfra=y/# CONFIG_PACKAGE_kmod-apconninfra is not set/g' .config
 
     - name: Download package
       id: package
